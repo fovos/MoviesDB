@@ -2,5 +2,10 @@
     <string name="app_name">MoviesApp</string>
     <string name="txt_arrange">Sort :</string>
 
+
+    <string name="top_rated">Top Rated</string>
+    <string name="most_popular">Most Popular</string>
+    <string name="top_rated_value" translatable="false">top_rated</string>
+    <string name="most_popular_value" translatable="false">popular</string>
     <string name="hello_blank_fragment">Movies Fragment</string>
 </resources>

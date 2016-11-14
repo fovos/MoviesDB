@@ -17,6 +17,7 @@ import java.util.ArrayList;
 
 /**
  * Created by Fovos on 13/11/2016.
+ * Custom Adapter for Picasso Usage
  */
 
 public class ImageAdapter extends BaseAdapter {
@@ -27,13 +28,23 @@ public class ImageAdapter extends BaseAdapter {
     private ArrayList<String> images;
 
     //CONSTRUCTOR
-    public ImageAdapter(Context c,ArrayList<String> img) {
+    public ImageAdapter(Context c, ArrayList<String> img) {
 
+        //reference to activity's context
         mContext = c;
-        images=img;
-        inflater=LayoutInflater.from(c);
 
-        Log.e("Picasso", images.toString());
+        //reference to Arraylist
+        images = img;
+
+        //reference to activity's inflater
+        inflater = LayoutInflater.from(c);
+
+    }
+
+    public void clear() {
+        // TODO Auto-generated method stub
+        images.clear();
+
     }
 
     @Override
@@ -54,6 +65,7 @@ public class ImageAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
+        // Check if an existing view is being reused, otherwise inflate the view
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.image_layout, parent, false);
         }
@@ -62,7 +74,7 @@ public class ImageAdapter extends BaseAdapter {
                 .load(images.get(position))
                 .fit() // will explain later
                 .into((ImageView) convertView);
-
-            return convertView;
+        // Return the completed view to render on screen
+        return convertView;
     }
 }
