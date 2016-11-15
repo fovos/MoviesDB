@@ -1,6 +1,7 @@
 package com.example.fovos.moviesapp;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -31,11 +32,11 @@ import java.util.ArrayList;
 
 public class MoviesFragment extends Fragment implements AdapterView.OnItemSelectedListener, AdapterView.OnItemClickListener {
 
-
     //FIELDS
-    GridView grd_view;
-    Spinner btn_select;
-    ImageAdapter mImageAdapter;
+    private GridView grd_view;
+    private Spinner btn_select;
+    private ImageAdapter mImageAdapter;
+    private String[][] movie_results;
 
     public MoviesFragment() {
         // Required empty public constructor
@@ -95,17 +96,26 @@ public class MoviesFragment extends Fragment implements AdapterView.OnItemSelect
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
         String selectedItem = parent.getItemAtPosition(position).toString();
-        Toast.makeText(getActivity(),selectedItem +" position"+position,Toast.LENGTH_LONG).show();
+        //Toast.makeText(getActivity(),selectedItem +"  "+movie_results[position][1],Toast.LENGTH_LONG).show();
+        //metafora sto detailsActivity
+        ArrayList<String> selected_movie=new ArrayList<>();
+        for (String prop:movie_results[position]) {
+            selected_movie.add(prop);
+        }
+        Intent intent = new Intent(getActivity(), DetailsActivity.class);
+        intent.putExtra("selected_movie", selected_movie);
+        startActivity(intent);
+
     }
 
-    public class FetchMoviesData extends AsyncTask<String, Void, String[]> {
+    public class FetchMoviesData extends AsyncTask<String, Void, String[][]> {
 
         //FIELDS
         private final String LOG_TAG = FetchMoviesData.class.getSimpleName();   //shows class name in Logcat
         private String movies_base_url = "https://api.themoviedb.org/3/movie/";
 
         @Override
-        protected String[] doInBackground(String... params) {
+        protected String[][] doInBackground(String... params) {
 
             // If there's no zip code, there's nothing to look up.  Verify size of params.
             if (params.length == 0) {
@@ -195,20 +205,24 @@ public class MoviesFragment extends Fragment implements AdapterView.OnItemSelect
             }
 
             // This will only happen if there was an error getting or parsing the forecast.
-            return new String[0];
+            return null;
         }
 
         @Override
-        protected void onPostExecute(String[] result) {      //to argument tha prepei na simfwnei me to trito argument tou asycTask.
+        protected void onPostExecute(String[][] result) {      //to argument tha prepei na simfwnei me to trito argument tou asycTask.
             //ektelesi sto main thread
             if (result != null) {
-                ArrayList<String> results = new ArrayList<>();
+                movie_results=result;
 
-                for (String str : result) {
-                    results.add(str);
+                //create arraylist with poster paths for the ImageAdapter to consume
+                ArrayList<String> poster_paths = new ArrayList<>();
+
+                for (int i=0;i<result.length;i++) {
+                    //return poster path
+                    poster_paths.add(result[i][0]);
                 }
                 mImageAdapter.clear();
-                mImageAdapter = new ImageAdapter(getActivity(), results);
+                mImageAdapter = new ImageAdapter(getActivity(), poster_paths);
 
                 grd_view.setAdapter(mImageAdapter);
             }
@@ -216,17 +230,21 @@ public class MoviesFragment extends Fragment implements AdapterView.OnItemSelect
 
     }
 
-    private String[] getMoviesDataFromJson(String JsonString) throws JSONException {
+    private String[][] getMoviesDataFromJson(String JsonString) throws JSONException {
         // These are the names of the JSON objects that need to be extracted.
         final String OWM_LIST = "results";
         final String OWM_POSTER_PATH = "poster_path";
+        final String OWN_TITLE="original_title";
+        final String OWN_OVERVIEW="overview";
+        final String OWN_VOTE_AVERAGE="vote_average";
+        final String OWN_RELEASE_DATE="release_date";
 
         JSONObject forecastJson = new JSONObject(JsonString);      //metatropi tou string se Json Object
         JSONArray moviesArray = forecastJson.getJSONArray(OWM_LIST);   //fetch the list object from JSON (7 objects)
 
 
         //auto tha epistrafei
-        String[] resultStrs = new String[moviesArray.length()];
+        String[][] resultStrs = new String[moviesArray.length()][5];
 
 
         for (int i = 0; i < moviesArray.length(); i++) {
@@ -236,11 +254,13 @@ public class MoviesFragment extends Fragment implements AdapterView.OnItemSelect
             // description is in a child array called "weather", which is 1 element long.
             String poster_path = movieObject.getString(OWM_POSTER_PATH);      //movie->poster_path
 
-            resultStrs[i] = "https://image.tmdb.org/t/p/w300_and_h450_bestv2" + poster_path.toString();
-        }
+            resultStrs[i][0] = "https://image.tmdb.org/t/p/w300_and_h450_bestv2" + poster_path.toString();
+            Log.e("url", resultStrs[i][0]);
+            resultStrs[i][1] = movieObject.getString(OWN_TITLE);
+            resultStrs[i][2] = movieObject.getString(OWN_OVERVIEW);
+            resultStrs[i][3] = movieObject.getString(OWN_VOTE_AVERAGE);
+            resultStrs[i][4] = movieObject.getString(OWN_RELEASE_DATE);
 
-        for (String s : resultStrs) {
-            Log.v("Poster Paths", s);
         }
 
         return resultStrs;
