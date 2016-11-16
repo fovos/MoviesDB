@@ -10,7 +10,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //start new Fragment with movies grid
-        getSupportFragmentManager().beginTransaction().add(R.id.container,new MoviesFragment()).commit();
+        //add new Fragment with movies grid only the first time
+        //ean den to valw  to if, tote tha prosthetei sinexws fragment panw apo to proigoumeno
+        //opote allaze to configuration tou device
+        if(savedInstanceState==null){
+            getSupportFragmentManager().beginTransaction().add(R.id.container,new MoviesFragment()).commit();
+        }
     }
 }

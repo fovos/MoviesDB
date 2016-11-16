@@ -5,10 +5,15 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.ShareActionProvider;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -26,9 +31,10 @@ public class DetailsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
-
         //start new Fragment with movies grid
-        getSupportFragmentManager().beginTransaction().add(R.id.container,new DetailFragment()).commit();
+        if(savedInstanceState==null){
+            getSupportFragmentManager().beginTransaction().add(R.id.container,new DetailFragment()).commit();
+        }
     }
 
     /**
@@ -36,9 +42,46 @@ public class DetailsActivity extends AppCompatActivity {
      */
     public static class DetailFragment extends Fragment {
 
+        //FIELDS
+        ShareActionProvider mShareActionProvider;
         public DetailFragment() {
 
         }
+
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setHasOptionsMenu(true);
+        }
+
+        @Override
+        public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+            // Inflate the detailfragment for sharing content; this adds items to the action bar if it is present.
+            inflater.inflate(R.menu.detailfragment, menu);
+
+            //Retrieve the share menu item
+            MenuItem menuitemshare=menu.findItem(R.id.menu_item_share);
+
+            mShareActionProvider= (ShareActionProvider) MenuItemCompat.getActionProvider(menuitemshare);    //cast se ShareActionProvider
+
+            //ShareActionProvider does not respond to onOptionsItemSelected() events, so you set the share action provider as soon as it is possible.
+            if(mShareActionProvider!=null){
+                mShareActionProvider.setShareIntent(createSharedMoviesIntent());
+            }
+        }
+
+        private Intent createSharedMoviesIntent(){
+            Intent sharedIntent=new Intent(Intent.ACTION_SEND);
+
+            sharedIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+
+
+            sharedIntent.setType("text/plain");
+            sharedIntent.putExtra(Intent.EXTRA_TEXT,selected_movie.get(1));
+
+            return sharedIntent;
+        }
+
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,

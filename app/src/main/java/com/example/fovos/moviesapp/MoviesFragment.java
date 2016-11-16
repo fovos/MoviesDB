@@ -2,12 +2,17 @@ package com.example.fovos.moviesapp;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -43,9 +48,32 @@ public class MoviesFragment extends Fragment implements AdapterView.OnItemSelect
     }
 
     @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        inflater.inflate(R.menu.main, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            Intent intent=new Intent(getActivity(),SettingsActivity.class);
+            startActivity(intent);
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -58,11 +86,9 @@ public class MoviesFragment extends Fragment implements AdapterView.OnItemSelect
         grd_view.setOnItemClickListener(this);
         btn_select = (Spinner) rootVIew.findViewById(R.id.sp_sort);
         btn_select.setOnItemSelectedListener(this);
-
         //TODO: Create another Array which will include info about each movie (not just image_path)
 
-        ArrayList<String> arr = new ArrayList<>();
-        mImageAdapter = new ImageAdapter(getActivity(), arr);
+        mImageAdapter = new ImageAdapter(getActivity(), new ArrayList<String>());
         grd_view.setAdapter(mImageAdapter);
 
         // Inflate the layout for this fragment
@@ -95,7 +121,7 @@ public class MoviesFragment extends Fragment implements AdapterView.OnItemSelect
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-        String selectedItem = parent.getItemAtPosition(position).toString();
+        //String selectedItem = parent.getItemAtPosition(position).toString();
         //Toast.makeText(getActivity(),selectedItem +"  "+movie_results[position][1],Toast.LENGTH_LONG).show();
         //metafora sto detailsActivity
         ArrayList<String> selected_movie=new ArrayList<>();
@@ -266,13 +292,21 @@ public class MoviesFragment extends Fragment implements AdapterView.OnItemSelect
         return resultStrs;
     }
 
+
     @Override
     public void onStart() {
         super.onStart();
 
-        //opote ekkinei to fragment ginetai updateweather.
-        updateMovies("popular");
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+
+        //opote ekkinei to fragment ginetai updateMovies kai katallili epilogi tou spinner
+        if(prefs.getString("movies_filter","popular").equals("popular")){
+            btn_select.setSelection(0);
+        }
+        else{
+            btn_select.setSelection(1);
+        }
+
+        updateMovies(prefs.getString("movies_filter", "popular"));
     }
-
-
 }
